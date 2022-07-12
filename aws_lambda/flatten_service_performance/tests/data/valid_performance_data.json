@@ -1,0 +1,137 @@
+{
+  "header": {
+    "from_location": "UCK",
+    "to_location": "LBG"
+  },
+  "Services": [
+    {
+      "serviceAttributesMetrics": {
+        "origin_location": "UCK",
+        "destination_location": "LBG",
+        "gbtt_ptd": "0633",
+        "gbtt_pta": "0753",
+        "toc_code": "SN",
+        "matched_services": "1",
+        "rids": [
+          "202206098777194"
+        ]
+      },
+      "Metrics": [
+        {
+          "tolerance_value": "0",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": true
+        },
+        {
+          "tolerance_value": "5",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": false
+        },
+        {
+          "tolerance_value": "10",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": false
+        },
+        {
+          "tolerance_value": "15",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": false
+        }
+      ]
+    },
+    {
+      "serviceAttributesMetrics": {
+        "origin_location": "UCK",
+        "destination_location": "LBG",
+        "gbtt_ptd": "0703",
+        "gbtt_pta": "0823",
+        "toc_code": "SN",
+        "matched_services": "1",
+        "rids": [
+          "202206098777196"
+        ]
+      },
+      "Metrics": [
+        {
+          "tolerance_value": "0",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": true
+        },
+        {
+          "tolerance_value": "5",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": false
+        },
+        {
+          "tolerance_value": "10",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": false
+        },
+        {
+          "tolerance_value": "15",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": false
+        }
+      ]
+    },
+    {
+      "serviceAttributesMetrics": {
+        "origin_location": "UCK",
+        "destination_location": "LBG",
+        "gbtt_ptd": "0733",
+        "gbtt_pta": "0853",
+        "toc_code": "SN",
+        "matched_services": "1",
+        "rids": [
+          "202206098777197"
+        ]
+      },
+      "Metrics": [
+        {
+          "tolerance_value": "0",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": true
+        },
+        {
+          "tolerance_value": "5",
+          "num_not_tolerance": "0",
+          "num_tolerance": "1",
+          "percent_tolerance": "100",
+          "global_tolerance": false
+        },
+        {
+          "tolerance_value": "10",
+          "num_not_tolerance": "1",
+          "num_tolerance": "0",
+          "percent_tolerance": "0",
+          "global_tolerance": false
+        },
+        {
+          "tolerance_value": "15",
+          "num_not_tolerance": "1",
+          "num_tolerance": "0",
+          "percent_tolerance": "0",
+          "global_tolerance": false
+        }
+      ]
+    }
+  ]
+}

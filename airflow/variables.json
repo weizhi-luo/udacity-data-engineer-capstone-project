@@ -1,0 +1,213 @@
+{
+    "capstone_project_aws": {
+        "s3": {
+            "bucket_name": "udacity-dend-capstone-project-weizhi-luo",
+            "ecmwf_weather_actual_json_folder": "ecmwf-weather-actual/json/",
+            "ecmwf_weather_actual_netcdf_folder": "ecmwf-weather-actual/netcdf/",
+            "ecmwf_weather_forecast_grib2_folder": "ecmwf-weather-forecast/grib2/",
+            "ecmwf_weather_forecast_json_folder": "ecmwf-weather-forecast/json/",
+            "rail_service_performance_flatten_folder": "rail-service-performance/flatten",
+            "rail_service_performance_folder": "rail-service-performance/",
+            "region_name": "us-west-2"
+        }
+    },
+    "daily_ecmwf_actual_download_path": "./airflow_downloads/daily_ecmwf_actual_download",
+    "ecmwf_era5_sub_region": {
+        "east": 1,
+        "north": 52.5,
+        "south": 50.5,
+        "west": -1
+    },
+    "ecmwf_era5_time": [
+        "00:00",
+        "01:00",
+        "02:00",
+        "03:00",
+        "04:00",
+        "05:00",
+        "06:00",
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+        "20:00",
+        "21:00",
+        "22:00",
+        "23:00"
+    ],
+    "ecmwf_era5_variables": [
+        "2m_temperature",
+        "10m_u_component_of_wind",
+        "10m_v_component_of_wind",
+        "mean_sea_level_pressure",
+        "surface_pressure",
+        "total_column_water_vapour",
+        "total_precipitation",
+        "skin_temperature"
+    ],
+    "ecmwf_forecast_parameter_and_alias_mapping": [
+        {
+            "parameter": "2t",
+            "parameter_alias": "temperature"
+        },
+        {
+            "parameter": "10u",
+            "parameter_alias": "10_metre_U_wind_component"
+        },
+        {
+            "parameter": "10v",
+            "parameter_alias": "10_metre_V_wind_component"
+        },
+        {
+            "parameter": "msl",
+            "parameter_alias": "mean_sea_level_pressure"
+        },
+        {
+            "parameter": "skt",
+            "parameter_alias": "skin_temperature"
+        },
+        {
+            "parameter": "sp",
+            "parameter_alias": "surface_pressure"
+        },
+        {
+            "parameter": "st",
+            "parameter_alias": "soil_temperature"
+        },
+        {
+            "parameter": "tcwv",
+            "parameter_alias": "total_column_vertically_integrated_water_vapour"
+        },
+        {
+            "parameter": "tp",
+            "parameter_alias": "total_precipitation"
+        }
+    ],
+    "ecmwf_forecast_parameters": [
+        "2t",
+        "10u",
+        "10v",
+        "msl",
+        "sp",
+        "tcwv",
+        "tp",
+        "skt"
+    ],
+    "rail_london_blackfriars_inbound_services": [
+        {
+            "days": "WEEKDAY",
+            "destination_station": "London Blackfriars",
+            "destination_station_crs_code": "BFR",
+            "from_time": "0600",
+            "origin_station": "Brighton",
+            "origin_station_crs_code": "BTN",
+            "to_time": "1000",
+            "tolerance": [
+                "5",
+                "10",
+                "15"
+            ]
+        }
+    ],
+    "rail_london_bridge_inbound_services": [
+        {
+            "days": "WEEKDAY",
+            "destination_station": "London Bridge",
+            "destination_station_crs_code": "LBG",
+            "from_time": "0600",
+            "origin_station": "Uckfield",
+            "origin_station_crs_code": "UCK",
+            "to_time": "1000",
+            "tolerance": [
+                "5",
+                "10",
+                "15"
+            ]
+        },
+        {
+            "days": "WEEKDAY",
+            "destination_station": "London Bridge",
+            "destination_station_crs_code": "LBG",
+            "from_time": "0600",
+            "origin_station": "Redhill",
+            "origin_station_crs_code": "RDH",
+            "to_time": "1000",
+            "tolerance": [
+                "5",
+                "10",
+                "15"
+            ]
+        },
+        {
+            "days": "WEEKDAY",
+            "destination_station": "London Bridge",
+            "destination_station_crs_code": "LBG",
+            "from_time": "0600",
+            "origin_station": "Three Bridges",
+            "origin_station_crs_code": "TBD",
+            "to_time": "1000",
+            "tolerance": [
+                "5",
+                "10",
+                "15"
+            ]
+        }
+    ],
+    "rail_london_kings_cross_inbound_services": [
+        {
+            "days": "WEEKDAY",
+            "destination_station": "London Kings Cross",
+            "destination_station_crs_code": "KGX",
+            "from_time": "0600",
+            "origin_station": "Cambridge",
+            "origin_station_crs_code": "CBG",
+            "to_time": "1000",
+            "tolerance": [
+                "5",
+                "10",
+                "15"
+            ]
+        }
+    ],
+    "rail_london_marylebone_inbound_services": [
+        {
+            "days": "WEEKDAY",
+            "destination_station": "London Marylebone",
+            "destination_station_crs_code": "MYB",
+            "from_time": "0600",
+            "origin_station": "Aylesbury Vale Parkway",
+            "origin_station_crs_code": "AVP",
+            "to_time": "1000",
+            "tolerance": [
+                "5",
+                "10",
+                "15"
+            ]
+        }
+    ],
+    "rail_london_waterloo_inbound_services": [
+        {
+            "days": "WEEKDAY",
+            "destination_station": "London Waterloo",
+            "destination_station_crs_code": "WAT",
+            "from_time": "0600",
+            "origin_station": "Woking",
+            "origin_station_crs_code": "WOK",
+            "to_time": "1000",
+            "tolerance": [
+                "5",
+                "10",
+                "15"
+            ]
+        }
+    ]
+}

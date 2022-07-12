@@ -1,0 +1,22 @@
+1. Connection containing AWS credentials for accessing resources such as S3 and Lambda
+Connection Id: aws_credentials
+Connection Type: Amazon Web Services
+Login: (access key id)
+Password: (secret access key)
+
+2. Connection to UK national rail historical service performance API
+Connection Id: national_rail_historical_service_performance
+Connection Type: HTTP
+Host: hsp-prod.rockshore.net/api/v1/serviceMetrics
+Schema: hhtps
+Login: (user name registered to access the API)
+Password: (password to access the API)
+
+3. Connection to Redshift instance
+Connection Id: redshift
+Connection Type: Postgres
+Host: (host name provided by AWS redshift)
+Schema: (name of the database)
+Login: (user name to access Redshift)
+Password: (password to access Redshift)
+Post: (port number of the Redshift instance)

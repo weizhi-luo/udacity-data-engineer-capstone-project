@@ -1,0 +1,16 @@
+boto3==1.24.20
+botocore==1.27.20
+cftime==1.6.0
+jmespath==1.0.1
+netCDF4==1.6.0
+numpy==1.23.0
+packaging==21.3
+pandas==1.4.3
+pyparsing==3.0.9
+python-dateutil==2.8.2
+pytz==2022.1
+s3transfer==0.6.0
+setuptools==44.0.0
+six==1.16.0
+urllib3==1.26.9
+xarray==2022.3.0
