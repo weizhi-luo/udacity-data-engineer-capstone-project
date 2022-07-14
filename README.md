@@ -312,7 +312,14 @@ The fourth task invokes the AWS Lamda function flatten_service_performance (sour
 
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
+#### ECMWF Forecast Dags
+Two dags are created to download ECMWF forecast data. One for downloading forecast data published at hour 00 and the other for the data at hour 12:
+* daily_ecmwf_00_forecast_download
+* daily_ecmwf_12_forecast_download
 
+Take dag daily_ecmwf_00_forecast_download as an example:
+
+![](C:\Users\lwzbu\source\repos\udacity-data-engineer-capstone-project\doc\images\ecmwf_00_forecast_dag.png)
 
 
 
