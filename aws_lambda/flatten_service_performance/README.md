@@ -1,0 +1,2 @@
+# flatten_service_performance
+This is the code base for Lambda function that extracts, transforms and flatten train services and related performance metrics data to the json format that can be imported to Redshift data warehouse.
