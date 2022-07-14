@@ -109,7 +109,7 @@ Three new attributes are generated in this conversion and flatten process:
 * delay_tolerance_minute
 * delayed
 
-Attribute ```date``` is extracted from the first 8 digits of rid. For example, 2016-07-01 is extracted from rid 201607013361763. Attribute ```delay_tolerance_minute``` is from the value of ```tolerance_value```. 
+Attribute ```date``` is extracted from the first 8 digits of rid. For example, 2016-07-01 is extracted from rid **20160701**3361763. Attribute ```delay_tolerance_minute``` is from the value of ```tolerance_value```. 
 
 Attribute ```delayed``` is based on the values of ```num_not_tolerance``` and ```num_tolerance```. If the value of ```num_not_tolerance``` is 0 and the value of ```num_tolerance``` is 1, then ```delayed``` is false. Otherwise, it is true.
 
@@ -158,6 +158,74 @@ The data is downloaded in [grib2](https://rda.ucar.edu/datasets/ds083.2/software
 ```
 
 ## Data Model
+The data warehouse is using a dimension data model based on [star schema](https://en.wikipedia.org/wiki/Star_schema). There are three fact tables storing ECMWF actual data, ECMWF forecast data and rail service performances. Dimension tables contains data for railway stations, train service operator, ECMWF actual data coordinates, ECMWF forecast data coordinates, date time and date. The SQL scripts for creating database schema and table are available in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/aws_redshift):
+* 001_create schemas.sql 
+* 002_create_staging_tables.sql 
+* 003_create_dimension_tables.sql 
+* 004_create_fact_tables.sql
+
+### Database Schema
+Three schema are created for different data:
+* stg: schema for staging data
+* dms: schema for dimension data
+* fct: schema for fact data
+
+### Staging Tables
+Eighteen staging tables are created to allow transformed raw data to be imported to the data warehouse:
+* stg.rail_service_performance: staging table for rail service performance data
+* stg.ecmwf_actual: staging table for ECMWF actual data
+* stg.ecmwf_forecast_00_2t: staging table for ECMWF temperature data published at 00 hour
+* stg.ecmwf_forecast_00_msl: staging table for ECMWF mean sea level pressure data published at 00 hour
+* stg.ecmwf_forecast_00_10v: staging table for ECMWF northward component of wind published at 00 hour
+* stg.ecmwf_forecast_00_10u: staging table for ECMWF eastward component of wind published at 00 hour
+* stg.ecmwf_forecast_00_tp: staging table for accumulated liquid and frozen water data published at 00 hour
+* stg.ecmwf_forecast_00_tcwv: staging table for total amount of water vapour data published at 00 hour 
+* stg.ecmwf_forecast_00_sp: staging table for air pressure at the surface of land published at 00 hour
+* stg.ecmwf_forecast_00_skt: staging table for earth surface temperature data published at 00 hour
+* stg.ecmwf_forecast_12_2t: staging table for ECMWF temperature data published at 12 hour
+* stg.ecmwf_forecast_12_msl: staging table for ECMWF mean sea level pressure data published at 12 hour
+* stg.ecmwf_forecast_12_10v: staging table for ECMWF northward component of wind published at 12 hour
+* stg.ecmwf_forecast_12_10u: staging table for ECMWF eastward component of wind published at 12 hour
+* stg.ecmwf_forecast_12_tp: staging table for accumulated liquid and frozen water data published at 12 hour
+* stg.ecmwf_forecast_12_tcwv: staging table for total amount of water vapour data published at 12 hour 
+* stg.ecmwf_forecast_12_sp: staging table for air pressure at the surface of land published at 12 hour
+* stg.ecmwf_forecast_12_skt: staging table for earth surface temperature data published at 12 hour
+
+### Dimension Tables
+Six dimension tables are created to store data describing attributes of fact data:
+* dms.station: dimension table for railway station name and code. The data is obtained from [National Rail](https://www.nationalrail.co.uk/stations_destinations/48541.aspx).
+* dms.train_service_operator: dimension table for train service operator name and code. The data is extracted from the operator_code column of stg.rail_service_performance and combined with data from railway codes [website](http://www.railwaycodes.org.uk/operators/toccodes.shtm).
+* dms."date": dimension table for date data extracted from date column from staging table stg.rail_service_performance
+* dms.date_time: dimension table for date and time extracted from value_date_time column from staging tables of ECMWF actual and forecast data
+* dms.ecmwf_actual_coordinate: dimension table for coordinate data extracted from staging table of ECMWF actual data
+* dms.ecmwf_forecast_coordinate: dimension table for coordinate data extracted from staging tables of ECMWF forecast data
+
+The reason why there are two dimension tables for coordinates of ECMWF actual and forecast respectively is due to the difference in granularity. ECMWF actual data's coordinates form a latitude-longitude grid of 0.25 degrees, while ECMWF forecast data's grid is of 0.4 degrees. By having two dimension tables, mapping tables can be created later to fill the gap between the difference in granularity.
+
+### Fact Tables
+Three fact tables are created to store fact data:
+* fct.rail_service_performance
+* fct.ecmwf_actual
+* fct.ecmwf_forecast
+
+#### fct.rail_service_performance
+fct.rail_service_performance table contains rail service performance data. It has the following columns:
+* origin_location_id: foreign key pointing to dimension table dms.station
+* destination_location_id: foreign key pointing to dimension table dms.station
+* "date": foreign key pointing to dimension table dms."date"
+* arrival_time
+* departure_time
+* train_service_operator_id: foreign key pointing to dimension table dms.train_service_operator
+* rid 
+* delayed 
+* delay_tolerance_minute
+```mermaid
+graph TD
+fct.rail_service_performance --> dms.station;
+fct.rail_service_performance --> dms.date;
+fct.rail_service_performance --> dms.train_service_operator;
+```
+
 
 
 ## ETL Pipeline
