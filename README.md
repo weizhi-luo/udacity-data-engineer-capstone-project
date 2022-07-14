@@ -269,7 +269,9 @@ date_time ||--o{ ecmwf_forecast : value_date_time
 ```
 
 ## ETL Pipeline
+The ETL pipeline is implemented by Apache Airflow. There are nine dags set up:
 
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/airflow_dags.png"/>]
 
 
 ## Data Storage
