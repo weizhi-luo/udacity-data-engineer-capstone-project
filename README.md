@@ -354,9 +354,28 @@ The fourth task convert_to_json pulls data from xcom, creates payload and invoke
 
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
-Similar to ECMWF forecast dags, AWS lambda functions are used here to offload heavy data processing from airflow. However, data download is still carried out by airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
+Similar to ECMWF forecast dags, an AWS lambda function is used here to offload heavy data processing from airflow. However, data download is still carried out by airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
 
+### One Time Dag
+The one time dag one_time_data_import runs once. It can be divided into three steps:
+* staging: copy transformed raw data to staging tables on Redshift instance
+* dimension: from staging tables, extract data to load dimension tables
+* fact: by joining staging and dimension tables, load data to fact tables
 
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/one_time_dag.png">
+
+#### Staging
+Tasks copy_staging_ecmwf_actual and copy_staging_rail_service_performance connect to Redshift instance and invoke the ```copy``` command to load data from json files in S3 key to staging tables.
+
+Task groups copy_staging_ecmwf_forecast_00 and copy_staging_ecmwf_forecast_12 execute Redshift's ```copy``` command to load data from json files specified in manifests to staging tables.
+
+#### Dimension
+Tasks load_dimension_date, load_dimension_date_time, load_dimension_ecmwf_actual_coordinates, load_dimension_ecmwf_forecst_coordinates and load_dimension_train_service run the SQL scripts defined in LoadDimensionTables class in [sql_queries.py](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/airflow/plugins/helpers/sql_queries.py) file in Redshift instance to load dimension tables.
+
+Task copy_dimension_station_codes executes ```copy``` command to load railway stations and codes data to dimension table.
+
+#### fact
+Tasks load_fact_ecmwf_actual, load_fact_ecmwf_forecast and load_fact_rail_service_performance run the SQL scripts defined in LoadFactTables class in [sql_queries.py](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/airflow/plugins/helpers/sql_queries.py) file in Redshift instance to load fact tables.
 
 
 ## Discussion
