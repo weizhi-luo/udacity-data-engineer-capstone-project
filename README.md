@@ -337,6 +337,26 @@ Finally, a watcher task is used and only activate if any of the previous task fa
 
 AWS lambda functions are used here to offload heavy data processing from airflow, as well as avoid installing too many packages and libraries to the server where airflow is installed.
 
+#### ECMWF Actual Dag
+One dag is created to download ECMWF actual data: daily_ecmwf_actual_download.
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_actual_dag.png">
+
+There are five tasks in this dag.
+
+The first task prepare_download_path prepares the local path for storing ECMWF actual data file.
+
+The second task download_file downloads ECMWF actual data in file of netCDF format following the instruction from the dataset [website](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels?tab=form) and API access [website](https://cds.climate.copernicus.eu/api-how-to).
+
+The third task upload_file uploads ECMWF actual data file to S3 bucket and push the related information to xcom. 
+
+The fourth task convert_to_json pulls data from xcom, creates payload and invokes the AWS lambda function convert_ecmwf_actual_json for converting netCDF data to a format of json that can be imported to Redshift.
+
+Finally, a watcher task is used and only activate if any of the previous task fails.
+
+Similar to ECMWF forecast dags, AWS lambda functions are used here to offload heavy data processing from airflow. However, data download is still carried out by airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
+
+
 
 
 ## Discussion
