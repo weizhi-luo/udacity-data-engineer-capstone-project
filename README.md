@@ -268,6 +268,12 @@ ecmwf_forecast_coordinate ||--o{ ecmwf_forecast : longitude
 date_time ||--o{ ecmwf_forecast : value_date_time
 ```
 
+## Data Warehouse
+[Amazon Redshift](https://aws.amazon.com/redshift/) is used in this project for data warehouse. 
+
+After creating an instance of Redshift, SQL scripts presented in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/aws_redshift) should be executed following numerical order to create schemas and dimension and fact tables. 
+
+
 ## ETL Pipeline
 The ETL pipeline is implemented by Apache Airflow. There are nine dags set up:
 
@@ -307,8 +313,6 @@ The fourth task invokes the AWS Lamda function flatten_service_performance (sour
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
 
-
-## Data Storage
 
 
 
