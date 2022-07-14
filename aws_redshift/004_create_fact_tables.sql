@@ -28,7 +28,7 @@ CREATE TABLE fct.ecmwf_forecast (
     total_column_vertically_integrated_water_vapour DOUBLE PRECISION, 
     total_precipitation DOUBLE PRECISION, 
     skin_temperature DOUBLE PRECISION,
-    FOREIGN KEY (latitude, longitude) REFERENCES dms.ecmwf_actual_coordinate(latitude, longitude),
+    FOREIGN KEY (latitude, longitude) REFERENCES dms.ecmwf_forecast_coordinate(latitude, longitude),
     FOREIGN KEY (value_date_time) REFERENCES dms.date_time (date_time)
 )
 DISTKEY(forecast_date_time);

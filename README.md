@@ -210,9 +210,9 @@ Three fact tables are created to store fact data:
 
 #### fct.rail_service_performance
 fct.rail_service_performance table contains rail service performance data. It has the following columns:
-* origin_location_id: foreign key pointing to dimension table dms.station
-* destination_location_id: foreign key pointing to dimension table dms.station
-* "date": foreign key pointing to dimension table dms."date"
+* origin_location_id: foreign key to dimension table dms.station
+* destination_location_id: foreign key to dimension table dms.station
+* "date": foreign key to dimension table dms."date"
 * arrival_time
 * departure_time
 * train_service_operator_id: foreign key pointing to dimension table dms.train_service_operator
@@ -220,12 +220,53 @@ fct.rail_service_performance table contains rail service performance data. It ha
 * delayed 
 * delay_tolerance_minute
 ```mermaid
-graph TD
-fct.rail_service_performance --> dms.station;
-fct.rail_service_performance --> dms.date;
-fct.rail_service_performance --> dms.train_service_operator;
+erDiagram
+station ||--o{ rail_service_performance : origin_location_id
+station ||--o{ rail_service_performance : destination_location_id
+date ||--o{ rail_service_performance : date
+train_service_operator ||--o{ rail_service_performance : train_service_operator_id
 ```
 
+#### fct.ecmwf_actual
+fct.ecmwf_actual table contains ECMWF actual data and it has the following columns:
+* latitude: foreign key to dimension table dms.ecmwf_actual_coordinate 
+* longitude: foreign key to dimension table dms.ecmwf_actual_coordinate 
+* value_date_time: foreign key to dimension table dms.date_time 
+* temperature
+* u_wind_component
+* v_wind_component
+* mean_sea_level_pressure
+* surface_pressure
+* total_column_vertically_integrated_water_vapour 
+* total_precipitation
+* skin_temperature
+```mermaid
+erDiagram
+ecmwf_actual_coordinate ||--o{ ecmwf_actual : latitude
+ecmwf_actual_coordinate ||--o{ ecmwf_actual : longitude
+date_time ||--o{ ecmwf_actual : date_time
+```
+
+#### fct.ecmwf_forecast
+fct.ecmwf_forecast table contains ECMWF forecast data and it has the following columns:
+* latitude: foreign key to dimension table dms.ecmwf_forecast_coordinate 
+* longitude: foreign key to dimension table dms.ecmwf_forecast_coordinate 
+* forecast_date_time
+* value_date_time: foreign key to dimension table dms.date_time 
+* temperature
+* u_wind_component
+* v_wind_component
+* mean_sea_level_pressure
+* surface_pressure
+* total_column_vertically_integrated_water_vapour 
+* total_precipitation
+* skin_temperature
+```mermaid
+erDiagram
+ecmwf_forecast_coordinate ||--o{ ecmwf_forecast : latitude
+ecmwf_forecast_coordinate ||--o{ ecmwf_forecast : longitude
+date_time ||--o{ ecmwf_forecast : date_time
+```
 
 
 ## ETL Pipeline
