@@ -244,7 +244,7 @@ fct.ecmwf_actual table contains ECMWF actual data and it has the following colum
 erDiagram
 ecmwf_actual_coordinate ||--o{ ecmwf_actual : latitude
 ecmwf_actual_coordinate ||--o{ ecmwf_actual : longitude
-date_time ||--o{ ecmwf_actual : date_time
+date_time ||--o{ ecmwf_actual : value_date_time
 ```
 
 #### fct.ecmwf_forecast
@@ -265,9 +265,8 @@ fct.ecmwf_forecast table contains ECMWF forecast data and it has the following c
 erDiagram
 ecmwf_forecast_coordinate ||--o{ ecmwf_forecast : latitude
 ecmwf_forecast_coordinate ||--o{ ecmwf_forecast : longitude
-date_time ||--o{ ecmwf_forecast : date_time
+date_time ||--o{ ecmwf_forecast : value_date_time
 ```
-
 
 ## ETL Pipeline
 
