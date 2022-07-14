@@ -273,6 +273,30 @@ The ETL pipeline is implemented by Apache Airflow. There are nine dags set up:
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/airflow_dags.png"/>]
 
+The dags can be categorised into two groups:
+* dags run daily
+* dag run once
+
+The source codes are available in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/airflow/dags).
+
+### Daily Dags
+The daily dags run once per day for extracting and transforming data sets from rail service performance, ECMWF actual and forecast data.
+
+#### Rail Service Performance Dags
+Five dags are created to extract and transform rail service performance data:
+* daily_rail_london_blackfriars_inbound_services_performance_download
+* daily_rail_london_bridge_inbound_services_performance_download
+* daily_rail_london_kings_cross_inbound_services_performance_download
+* daily_rail_london_marylebone_inbound_services_performance_download
+* daily_rail_london_waterloo_inbound_services_performance_download
+
+Take dag daily_rail_london_blackfriars_inbound_services_performance_download as an example:
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/blackfriars_dag.png"/>]
+
+There are five tasks in this dag. The first task download_Brighton_to_London_Blackfriars downloads data from National Rail's Darwin API. The download is done by using the http connection national_rail_historical_service_performance set up in airflow. The second task data_quality_check_Brighton_to_London_Blackfriars receives the downloaded data via xcom and validates its format. The third task upload_Brighton_to_London_Blackfriars uploads validated data to an AWS bucket. The bucket name and S3 key to the file are sent to the fourth task flatten_Brighton_to_London_Blackfriars via xcom. The fourth task invokes the AWS Lamda function flatten_service_performance (source code is at [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/aws_lambda/flatten_service_performance)) to convert and flatten data to the format explained in Data Sets section above. Finally, a watcher task is used and only activate if any of the previous task fails.
+
+
 
 ## Data Storage
 
