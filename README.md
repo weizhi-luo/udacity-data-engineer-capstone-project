@@ -319,7 +319,7 @@ Two dags are created to download ECMWF forecast data. One for downloading foreca
 
 Take dag daily_ecmwf_00_forecast_download as an example:
 
-<img src="(https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_dag.png"/>]
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_dag.png"/>]
 
 
 
