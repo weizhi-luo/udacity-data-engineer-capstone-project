@@ -277,7 +277,7 @@ After creating an instance of Redshift, SQL scripts presented in [repository](ht
 ## ETL Pipeline
 The ETL pipeline is implemented by Apache Airflow. There are nine dags set up:
 
-<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/airflow_dags.png"/>]
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/airflow_dags.png"/>
 
 The dags can be categorised into two groups:
 * dags run daily
@@ -319,7 +319,23 @@ Two dags are created to download ECMWF forecast data. One for downloading foreca
 
 Take dag daily_ecmwf_00_forecast_download as an example:
 
-<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_dag.png"/>]
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_dag.png"/>
+
+As explained before, in order to avoid problems when downloading all eight variables in call, each variable is downloaded independently. For temperature of Earth surface, skt, as an example:
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_skt_dag.png">
+
+There are four tasks in downloading this data. 
+
+The first task download_ecmwf_forecast_skt invokes an AWS lambda function download_ecmwf_forecast to download data in grib2 format and upload to S3 bucket. The lambda function returns information related to the downloaded file such as S3 bucket and key and pushes it to xcom.
+
+The second task download_ecmwf_forecast_skt pulls the information from xcom and prepares them as the payload to be used by the third task. The prepared payload is pushed to xcom.
+
+The third task convert_ecmwf_forecast_to_json_skt pulls data from xcom and use it as the payload for invoking AWS lambda function convert_ecmwf_forecast_to_json. This lambda function downloads the grib2 file and converts it to the json format that can be imported to Redshift data warehouse.
+
+Finally, a watcher task is used and only activate if any of the previous task fails.
+
+AWS lambda functions are used here to offload heavy data processing from airflow, as well as avoid installing too many packages and libraries to the server where airflow is installed.
 
 
 
