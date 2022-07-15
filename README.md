@@ -12,14 +12,12 @@ This project gathers three data sets:
 The data extract, transform and load (ETL) pipeline is implemented using Apache [Airflow](https://airflow.apache.org/). Data is stored on an instance of [Amazon Redshift](https://aws.amazon.com/redshift/).
 
 ## Data Sets
-Railway is important public transport system in Britain. Delays or cancellations cause inconvenience to a lot of railway users, especially the commuters. [Darwin](https://www.nationalrail.co.uk/100296.aspx) is rail industry's official training running information engine which provides not only real-time data, but also history service performance.
+Railway is important public transport system in Britain. Delays or cancellations cause inconvenience to a lot of railway users, especially the commuters. The disruptions can be caused by a lot of factors, such as over running engineering work, industrial actions, public holidays, weather, etc. Weather can bring impacts to railway in different ways. Severe weather conditions may damage railway signalling system or cause landslides and fallen trees on the tracks. Even a wrong kind of sunlight can cause delays as reported in this [news story](https://www.theguardian.com/uk-news/2016/jan/12/wrong-kind-of-sunlight-delays-southeastern-trains-london) from Guardian!
 
-The disruptions can be caused by a lot of factors, such as over running engineering work, industrial actions, public holidays, weather, etc. Weather can bring impacts to railway in different ways. Severe weather conditions may damage railway signalling system or cause landslides and fallen trees on the tracks. Even a wrong kind of sunlight can cause delays as reported in this [news story](https://www.theguardian.com/uk-news/2016/jan/12/wrong-kind-of-sunlight-delays-southeastern-trains-london) from Guardian!
-
-This project gathers three data sets including rail historic service performance and weather actual and forecast data. With the performance and weather actual data, data users may discover how weather conditions can affect train service performance. If such discovery achieved, the weather forecast data can be used for prediction. Or we may need more data for finding out the links between more factors and performance. This is the beginning of a journey :smile:!
+This project gathers three data sets, including rail historic service performance, actual and forecast weather data. With the performance and actual weather data, data users may discover how weather conditions can affect train service performance. If such discovery achieved, the weather forecast data can be used for prediction. Or we may need more data for finding out the links between more factors and performance. This is the beginning of a journey :smile:!
 
 ### Rail Service Performance
-Rail service performance data set is collected by registering an account at [Darwin](https://www.nationalrail.co.uk/100296.aspx). This [wiki](https://wiki.openraildata.com/index.php/HSP) page provides details about API access and data format. The data is in json format as:
+Rail service performance data set is available at [Darwin](https://www.nationalrail.co.uk/100296.aspx). Darwin is Britain's rail industry's official training running information engine which provides both real-time and history service performance data. A user account has to be registered with Darwin API. And this [wiki](https://wiki.openraildata.com/index.php/HSP) page provides details about API access and data format. The data is in json format as:
 ```json
 {
   "header": {
@@ -158,7 +156,7 @@ The data is downloaded in [grib2](https://rda.ucar.edu/datasets/ds083.2/software
 ```
 
 ## Data Model
-The data warehouse is using a dimension data model based on [star schema](https://en.wikipedia.org/wiki/Star_schema). There are three fact tables storing ECMWF actual data, ECMWF forecast data and rail service performances. Dimension tables contains data for railway stations, train service operator, ECMWF actual data coordinates, ECMWF forecast data coordinates, date time and date. The SQL scripts for creating database schema and table are available in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/aws_redshift):
+The data warehouse is using a dimension data model based on [star schema](https://en.wikipedia.org/wiki/Star_schema). Comparing to normalized data models, dimension data model simplifies joins between tables and also facilitate aggregation. There are three fact tables storing ECMWF actual data, ECMWF forecast data and rail service performances. Dimension tables contains data for railway stations, train service operator, ECMWF actual data coordinates, ECMWF forecast data coordinates, date time and date. The SQL scripts for creating database schema and table are available in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/aws_redshift):
 * 001_create schemas.sql 
 * 002_create_staging_tables.sql 
 * 003_create_dimension_tables.sql 
@@ -289,7 +287,7 @@ The source codes are available in [repository](https://github.com/weizhi-luo/uda
 The daily dags run once per day for extracting and transforming data sets from rail service performance, ECMWF actual and forecast data.
 
 #### Rail Service Performance Dags
-Five dags are created to extract and transform rail service performance data. Each dag downloads data of weekday before today:
+Five dags are created to extract and transform rail service performance data. Each dag is schedule with cron ```0 0 * * 1-5``` and downloads data of ONE day, which is the weekday before today:
 * daily_rail_london_blackfriars_inbound_services_performance_download
 * daily_rail_london_bridge_inbound_services_performance_download
 * daily_rail_london_kings_cross_inbound_services_performance_download
@@ -313,15 +311,17 @@ The fourth task invokes the AWS Lamda function flatten_service_performance (sour
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
 #### ECMWF Forecast Dags
-Two dags are created to download ECMWF forecast data. One for downloading forecast data published at hour 00 and the other for the data at hour 12:
+Two dags are created to download ECMWF forecast data:
 * daily_ecmwf_00_forecast_download
 * daily_ecmwf_12_forecast_download
+
+daily_ecmwf_00_forecast_download runs with schedule ```0 10 * * *``` and gets forecast data published at hour 00. The reason why it is scheduled to run just before 10am is that data published at hour 00 will only be completely available in 8 to 9 hours. Similarly, daily_ecmwf_12_forecast_download is with schedule ```0 22 * * *``` for downloading data published at hour 12.
 
 Take dag daily_ecmwf_00_forecast_download as an example:
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_dag.png"/>
 
-As explained before, in order to avoid problems when downloading all eight variables in call, each variable is downloaded independently. For temperature of Earth surface, skt, as an example:
+As explained before, in order to avoid problems when downloading all eight variables in call, each variable is downloaded independently. Take temperature of Earth surface, skt, as an example:
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_skt_dag.png">
 
@@ -354,10 +354,10 @@ The fourth task convert_to_json pulls data from xcom, creates payload and invoke
 
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
-Similar to ECMWF forecast dags, an AWS lambda function is used here to offload heavy data processing from airflow. However, data download is still carried out by airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
+Similar to ECMWF forecast dags, an AWS lambda function is used here to offload heavy data processing of netCDF/json conversion from airflow. However, data download is still carried out by airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
 
 ### One Time Dag
-The one time dag one_time_data_import runs once. It can be divided into three steps:
+The one time dag one_time_data_import runs once with schedule ```@once```. It can be divided into three steps:
 * staging: copy transformed raw data to staging tables on Redshift instance
 * dimension: from staging tables, extract data to load dimension tables
 * fact: by joining staging and dimension tables, load data to fact tables
@@ -365,14 +365,14 @@ The one time dag one_time_data_import runs once. It can be divided into three st
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/one_time_dag.png">
 
 #### Staging
-Tasks copy_staging_ecmwf_actual and copy_staging_rail_service_performance connect to Redshift instance and invoke the ```copy``` command to load data from json files in S3 key to staging tables.
+Tasks copy_staging_ecmwf_actual and copy_staging_rail_service_performance connect to Redshift instance and invoke the ```copy``` command to load data from json files in S3 to staging tables.
 
-Task groups copy_staging_ecmwf_forecast_00 and copy_staging_ecmwf_forecast_12 execute Redshift's ```copy``` command to load data from json files specified in manifests to staging tables.
+Task groups copy_staging_ecmwf_forecast_00 and copy_staging_ecmwf_forecast_12 execute Redshift's ```copy``` command to load data from json files in S3 specified by manifests to staging tables.
 
 #### Dimension
 Tasks load_dimension_date, load_dimension_date_time, load_dimension_ecmwf_actual_coordinates, load_dimension_ecmwf_forecst_coordinates and load_dimension_train_service run the SQL scripts defined in LoadDimensionTables class in [sql_queries.py](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/airflow/plugins/helpers/sql_queries.py) file in Redshift instance to load dimension tables.
 
-Task copy_dimension_station_codes executes ```copy``` command to load railway stations and codes data to dimension table.
+Task copy_dimension_station_codes executes ```copy``` command to load railway stations and codes data from csv file in S3 to dimension table.
 
 #### Fact
 Tasks load_fact_ecmwf_actual, load_fact_ecmwf_forecast and load_fact_rail_service_performance run the SQL scripts defined in LoadFactTables class in [sql_queries.py](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/airflow/plugins/helpers/sql_queries.py) file in Redshift instance to load fact tables.
