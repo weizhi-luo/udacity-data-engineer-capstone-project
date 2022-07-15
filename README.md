@@ -289,7 +289,7 @@ The source codes are available in [repository](https://github.com/weizhi-luo/uda
 The daily dags run once per day for extracting and transforming data sets from rail service performance, ECMWF actual and forecast data.
 
 #### Rail Service Performance Dags
-Five dags are created to extract and transform rail service performance data:
+Five dags are created to extract and transform rail service performance data. Each dag downloads data of weekday before today:
 * daily_rail_london_blackfriars_inbound_services_performance_download
 * daily_rail_london_bridge_inbound_services_performance_download
 * daily_rail_london_kings_cross_inbound_services_performance_download
@@ -338,7 +338,7 @@ Finally, a watcher task is used and only activate if any of the previous task fa
 AWS lambda functions are used here to offload heavy data processing from airflow, as well as avoid installing too many packages and libraries to the server where airflow is installed.
 
 #### ECMWF Actual Dag
-One dag is created to download ECMWF actual data: daily_ecmwf_actual_download.
+One dag is created to download ECMWF actual data: daily_ecmwf_actual_download. As ECMWF ERA5 data is normally delayed for around 5 days. In order to make sure data is available, the dag downloads data of seven days ago.
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_actual_dag.png">
 
@@ -374,8 +374,21 @@ Tasks load_dimension_date, load_dimension_date_time, load_dimension_ecmwf_actual
 
 Task copy_dimension_station_codes executes ```copy``` command to load railway stations and codes data to dimension table.
 
-#### fact
+#### Fact
 Tasks load_fact_ecmwf_actual, load_fact_ecmwf_forecast and load_fact_rail_service_performance run the SQL scripts defined in LoadFactTables class in [sql_queries.py](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/airflow/plugins/helpers/sql_queries.py) file in Redshift instance to load fact tables.
 
 
 ## Discussion
+
+### If the data was increased by 100x
+If the data was increased by 100 times, the current ETL pipeline may not be able to handle that. We may use large scale data processing engine such as Apache Spark instead.
+
+### If the pipelines were run on a daily basis by 7am
+We need to make sure the schedules in Airflow are set to by 7am, such as cron ```0 6 * * *```. The airflow's scheduler runs job at the end of schedule_interval. 
+
+For example, assuming that the start date is 2022-06-01 06:00 and schedule is ```0 6 * * *```. The run with start date 2022-06-01 06:00 will only be triggered soon after 2022-06-02 05:59.
+
+### If the database needed to be accessed by 100+ people
+There can be several actions to be done to help solve this challenge.
+1. Horizontally scale up Redshift by adding more computing nodes so that queries can be executed in parallel.
+2. Analyze business requirements from the users and different data marts might be created to satisfy different needs.
