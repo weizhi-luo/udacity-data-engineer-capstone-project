@@ -14,6 +14,13 @@ DOWNLOAD_FILE_XCOM_KEY = 'download_file_path'
 UPLOAD_FILE_TASK_ID = 'upload_file'
 UPLOAD_FILE_S3_BUCKET_XCOM_KEY = 's3_bucket'
 UPLOAD_FILE_S3_KEY_XCOM_KEY = 's3_key'
+CONVERT_FILE_TASK_ID = 'convert_to_json'
+CONVERT_FILE_XCOM_KEY = 'return_value'
+JSON_FILE_VALIDATION_PAYLOAD_CREATION_TASK_ID = \
+    'create_json_file_validation_payload'
+JSON_FILE_VALIDATION_PAYLOAD_S3_BUCKET_XCOM_KEY = 's3_bucket'
+JSON_FILE_VALIDATION_PAYLOAD_S3_KEY_XCOM_KEY = 's3_key'
+JSON_FILE_VALIDATION_PAYLOAD_EXPECTED_KEY_XCOM_KEY = 'expected_keys'
 
 
 with DAG(
@@ -89,6 +96,17 @@ with DAG(
         ti.xcom_push(key=UPLOAD_FILE_S3_BUCKET_XCOM_KEY, value=s3_bucket)
         ti.xcom_push(key=UPLOAD_FILE_S3_KEY_XCOM_KEY, value=s3_key)
 
+    def create_json_file_validation_payload(
+            file_conversion_task_result: str = None,
+            expected_keys: str = None, ti=None):
+        import json
+        task_result_dict = json.loads(file_conversion_task_result)
+        ti.xcom_push(JSON_FILE_VALIDATION_PAYLOAD_S3_BUCKET_XCOM_KEY,
+                     task_result_dict['s3_bucket'])
+        ti.xcom_push(JSON_FILE_VALIDATION_PAYLOAD_S3_KEY_XCOM_KEY,
+                     task_result_dict['s3_key'])
+        ti.xcom_push(JSON_FILE_VALIDATION_PAYLOAD_EXPECTED_KEY_XCOM_KEY,
+                     expected_keys)
 
     prepare_download_path_task = PythonOperator(
         task_id='prepare_download_path',
@@ -132,7 +150,7 @@ with DAG(
     )
 
     convert_file_task = AwsRequestResponseLambdaOperator(
-        task_id='convert_to_json',
+        task_id=CONVERT_FILE_TASK_ID,
         aws_connection_id='aws_credentials',
         region_name='us-west-2',
         function_name='convert_ecmwf_actual_to_json',
@@ -155,6 +173,44 @@ with DAG(
                 "{{ var.json.capstone_project_aws.s3."
                 "ecmwf_weather_actual_json_folder }}"
         },
+        xcom_key=CONVERT_FILE_XCOM_KEY,
+        do_xcom_push=True
+    )
+
+    create_json_file_validation_payload_task = PythonOperator(
+        task_id=JSON_FILE_VALIDATION_PAYLOAD_CREATION_TASK_ID,
+        python_callable=create_json_file_validation_payload,
+        op_kwargs={
+            "file_conversion_task_result":
+                f"{{{{ ti.xcom_pull(task_ids='{CONVERT_FILE_TASK_ID}', "
+                f"key='{CONVERT_FILE_XCOM_KEY}', dag_id='{DAG_ID}') }}}}",
+            "expected_keys": "{{ var.value.ecmwf_era5_variables_in_json }}"
+        },
+        do_xcom_push=True
+    )
+
+    validate_json_file_task = AwsRequestResponseLambdaOperator(
+        task_id='validate_json_file',
+        aws_connection_id='aws_credentials',
+        region_name='us-west-2',
+        function_name='redshift_json_file_format_check',
+        function_payload={
+            "s3_bucket":
+                "{{ ti.xcom_pull("
+                f"task_ids='{JSON_FILE_VALIDATION_PAYLOAD_CREATION_TASK_ID}', "
+                f"key='{JSON_FILE_VALIDATION_PAYLOAD_S3_BUCKET_XCOM_KEY}', "
+                f"dag_id='{DAG_ID}') }}}}",
+            "s3_key":
+                "{{ ti.xcom_pull("
+                f"task_ids='{JSON_FILE_VALIDATION_PAYLOAD_CREATION_TASK_ID}', "
+                f"key='{JSON_FILE_VALIDATION_PAYLOAD_S3_KEY_XCOM_KEY}', "
+                f"dag_id='{DAG_ID}') }}}}",
+            "expected_keys":
+                "{{ ti.xcom_pull("
+                f"task_ids='{JSON_FILE_VALIDATION_PAYLOAD_CREATION_TASK_ID}', "
+                f"key='{JSON_FILE_VALIDATION_PAYLOAD_EXPECTED_KEY_XCOM_KEY}', "
+                f"dag_id='{DAG_ID}') }}}}"
+        },
         do_xcom_push=False
     )
 
@@ -163,4 +219,6 @@ with DAG(
     prepare_download_path_task >> download_file_task
     download_file_task >> upload_file_task
     upload_file_task >> convert_file_task
-    convert_file_task >> watcher_task
+    convert_file_task >> create_json_file_validation_payload_task
+    create_json_file_validation_payload_task >> validate_json_file_task
+    validate_json_file_task >> watcher_task
