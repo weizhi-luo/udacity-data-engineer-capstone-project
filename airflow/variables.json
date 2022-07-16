@@ -6,12 +6,10 @@
             "ecmwf_weather_actual_netcdf_folder": "ecmwf-weather-actual/netcdf/",
             "ecmwf_weather_forecast_grib2_folder": "ecmwf-weather-forecast/grib2/",
             "ecmwf_weather_forecast_json_folder": "ecmwf-weather-forecast/json/",
-            "rail_service_performance_flatten_folder": "rail-service-performance/flatten",
-            "rail_service_performance_folder": "rail-service-performance/",
             "region_name": "us-west-2"
         }
     },
-    "daily_ecmwf_actual_download_path": "./airflow_downloads/daily_ecmwf_actual_download",
+    "daily_ecmwf_actual_download_path": "./home/siguma/airflow_downloads/daily_ecmwf_actual_download",
     "ecmwf_era5_sub_region": {
         "east": 1,
         "north": 52.5,
@@ -53,6 +51,19 @@
         "total_column_water_vapour",
         "total_precipitation",
         "skin_temperature"
+    ],
+    "ecmwf_era5_variables_in_json": [
+        "t2m",
+        "u10",
+        "v10",
+        "msl",
+        "sp",
+        "tcwv",
+        "tp",
+        "skt",
+        "latitude",
+        "longitude",
+        "value_date_time"
     ],
     "ecmwf_forecast_parameter_and_alias_mapping": [
         {
@@ -102,6 +113,16 @@
         "tp",
         "skt"
     ],
+    "ecmwf_forecast_parameters_expected_keys_in_json": {
+        "10u": "[\"u10\", \"latitude\", \"longitude\", \"value_date_time\", \"forecast_date_time\"]",
+        "10v": "[\"v10\", \"latitude\", \"longitude\", \"value_date_time\", \"forecast_date_time\"]",
+        "2t": "[\"t2m\", \"latitude\", \"longitude\", \"value_date_time\", \"forecast_date_time\"]",
+        "msl": "[\"msl\", \"latitude\", \"longitude\", \"value_date_time\", \"forecast_date_time\"]",
+        "skt": "[\"skt\", \"latitude\", \"longitude\", \"value_date_time\", \"forecast_date_time\"]",
+        "sp": "[\"sp\", \"latitude\", \"longitude\", \"value_date_time\", \"forecast_date_time\"]",
+        "tcwv": "[\"tcwv\", \"latitude\", \"longitude\", \"value_date_time\", \"forecast_date_time\"]",
+        "tp": "[\"tp\", \"latitude\", \"longitude\", \"value_date_time\", \"forecast_date_time\"]"
+    },
     "rail_london_blackfriars_inbound_services": [
         {
             "days": "WEEKDAY",
