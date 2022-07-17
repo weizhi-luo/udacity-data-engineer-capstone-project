@@ -349,6 +349,7 @@ delay_tolerance_minute | smallint | | Delay tolerance in minutes. For example, 5
 
 fct.rail_service_performance is linked to dms.station, dms."date" and dms.train_service_operator as:
 
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.rail_links.png"/>
 
 ```mermaid
 erDiagram
