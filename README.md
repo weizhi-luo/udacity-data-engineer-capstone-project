@@ -318,32 +318,32 @@ After creating an instance of Redshift, SQL scripts presented in [repository](ht
 
 
 ## ETL Pipeline
-The ETL pipeline is implemented by Apache Airflow. There are nine dags set up:
+The ETL pipeline is implemented by Apache Airflow. There are nine DAGs set up:
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/airflow_dags.png"/>
 
-The dags can be categorised into two groups:
-* dags run daily
-* dag run once
+The DAGs can be categorised into two groups:
+* DAGs run daily
+* DAG run once
 
-The source codes are available in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/airflow/dags).
+The source codes are available in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/airflow/DAGs).
 
-### Daily Dags
-The daily dags run once per day for extracting and transforming data sets from rail service performance, ECMWF actual and forecast data.
+### Daily DAGs
+The daily DAGs run once per day for extracting and transforming data sets from rail service performance, ECMWF actual and forecast data.
 
-#### Rail Service Performance Dags
-Five dags are created to extract and transform rail service performance data. Each dag is schedule with cron ```0 0 * * 1-5``` and downloads data of ONE day, which is the weekday before today:
+#### Rail Service Performance DAGs
+Five DAGs are created to extract and transform rail service performance data. Each DAG is schedule with cron ```0 0 * * 1-5``` and downloads data of ONE day, which is the weekday before today:
 * daily_rail_london_blackfriars_inbound_services_performance_download
 * daily_rail_london_bridge_inbound_services_performance_download
 * daily_rail_london_kings_cross_inbound_services_performance_download
 * daily_rail_london_marylebone_inbound_services_performance_download
 * daily_rail_london_waterloo_inbound_services_performance_download
 
-Take dag daily_rail_london_blackfriars_inbound_services_performance_download as an example:
+Take DAG daily_rail_london_blackfriars_inbound_services_performance_download as an example:
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/blackfriars_dag.png"/>]
 
-There are five tasks in this dag. 
+There are five tasks in this DAG. 
 
 The first task download_Brighton_to_London_Blackfriars downloads data from National Rail's Darwin API. The download is done by using the http connection national_rail_historical_service_performance set up in airflow. 
 
@@ -355,14 +355,14 @@ The fourth task invokes the AWS Lamda function flatten_service_performance (sour
 
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
-#### ECMWF Forecast Dags
-Two dags are created to download ECMWF forecast data:
+#### ECMWF Forecast DAGs
+Two DAGs are created to download ECMWF forecast data:
 * daily_ecmwf_00_forecast_download
 * daily_ecmwf_12_forecast_download
 
 daily_ecmwf_00_forecast_download runs with schedule ```0 10 * * *``` and gets forecast data published at hour 00. The reason why it is scheduled to run just before 10am is that data published at hour 00 will only be completely available in 8 to 9 hours. Similarly, daily_ecmwf_12_forecast_download is with schedule ```0 22 * * *``` for downloading data published at hour 12.
 
-Take dag daily_ecmwf_00_forecast_download as an example:
+Take DAG daily_ecmwf_00_forecast_download as an example:
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_dag.png"/>
 
@@ -382,12 +382,12 @@ Finally, a watcher task is used and only activate if any of the previous task fa
 
 AWS lambda functions are used here to offload heavy data processing from airflow, as well as avoid installing too many packages and libraries to the server where airflow is installed.
 
-#### ECMWF Actual Dag
-One dag is created to download ECMWF actual data: daily_ecmwf_actual_download. As ECMWF ERA5 data is normally delayed for around 5 days. In order to make sure data is available, the dag downloads data of seven days ago.
+#### ECMWF Actual DAG
+One DAG is created to download ECMWF actual data: daily_ecmwf_actual_download. As ECMWF ERA5 data is normally delayed for around 5 days. In order to make sure data is available, the dag downloads data of seven days ago.
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_actual_dag.png">
 
-There are five tasks in this dag.
+There are five tasks in this DAG.
 
 The first task prepare_download_path prepares the local path for storing ECMWF actual data file.
 
@@ -399,10 +399,10 @@ The fourth task convert_to_json pulls data from xcom, creates payload and invoke
 
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
-Similar to ECMWF forecast dags, an AWS lambda function is used here to offload heavy data processing of netCDF/json conversion from airflow. However, data download is still carried out by airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
+Similar to ECMWF forecast DAGs, an AWS lambda function is used here to offload heavy data processing of netCDF/json conversion from airflow. However, data download is still carried out by airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
 
-### One Time Dag
-The one time dag one_time_data_import runs once with schedule ```@once```. It can be divided into three steps:
+### One Time DAG
+The one time DAG one_time_data_import runs once with schedule ```@once```. It can be divided into three steps:
 * staging: copy transformed raw data to staging tables on Redshift instance
 * dimension: from staging tables, extract data to load dimension tables
 * fact: by joining staging and dimension tables, load data to fact tables
