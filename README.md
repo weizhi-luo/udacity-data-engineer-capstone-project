@@ -9,7 +9,52 @@ This project gathers three data sets:
 * European Centre for Medium-Range Weather Forecasts (ECMWF) [ERA5 hourly data](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels?tab=overview)
 * ECMWF [open data](https://www.ecmwf.int/en/forecasts/datasets/open-data)
 
-The data extract, transform and load (ETL) pipeline is implemented using Apache [Airflow](https://airflow.apache.org/). Data is stored on an instance of [Amazon Redshift](https://aws.amazon.com/redshift/).
+The data extract, transform and load (ETL) pipeline is implemented using [Apache Airflow](https://airflow.apache.org/). Data is stored on an instance of [Amazon Redshift](https://aws.amazon.com/redshift/).
+
+## Tools and Technologies
+This project uses the following tools and technologies:
+* Apache Airflow
+* AWS Lambda
+* AWS ECR
+* Amazon Redshift
+* Amazon S3
+
+### Apache Airflow
+[Apache Airflow](https://airflow.apache.org/) is an open-source platform for managing data engineering pipelines. Airflow uses a DAG (Directed Acyclic Graph) to represent a collection of tasks:
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_actual_dag.png">
+
+Airflow's user interface makes it easy to manage DAG runs. It helps users check status and log of DAG runs, trigger DAG runs, and manage variables and connections used by DAGs. Apart from user interface, Airflow also provides a command line interface various operations, such as DAG backfill, etc.
+
+Airflow's scheduler allows users to set up different schedules that trigger DAGs to run. Users define a DAG by a Python script, which represents a collection of tasks. Each task is defined by instantiating an [operator](https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html), where users can use Jinja Templating to access [macros](https://airflow.apache.org/docs/apache-airflow/stable/templates-ref.html#templates-ref) and [variables](https://airflow.apache.org/docs/apache-airflow/stable/howto/variable.html) without hard coding the tasks. 
+
+Airflow also provides [connections and hooks](https://airflow.apache.org/docs/apache-airflow/stable/concepts/connections.html) that make it simpler to define tasks in pulling and pushing data from and to various sources (http, ftp, sftp, AWS S3, etc.). Except the inbuilt and third party contribute operators, Airflow also allow users to define custom operators for specific needs.
+
+Airflow is a convenient and powerful tool for implementing a data engineering pipeline. Although technically users can place all data extraction and processing logics in it, it is a better practice to use it as an [orchestrator](https://www.astronomer.io/guides/dag-best-practices/) that invoke heavy processing jobs on other platforms or instances. Therefore, AWS solutions are also used in this project.
+
+### AWS Lambda, ECR
+[AWS Lambda](https://aws.amazon.com/lambda/) is a serverless and event-driven compute service which allows users to run codes for different applications without setting up a server.
+
+As discussed above, it is a good practise to use Airflow as an orchestrator for triggering heavy processing jobs elsewhere. Therefore, in this project AWS Lambda is used for various tasks, such as data conversion, processing and validation. 
+
+AWS Lambda supports different ways in deployments. The simplest way is to write codes in their web code editor. For more complex applications, users can upload a compressed file (.zip file archive) directly. User can also upload the zip file to S3 and point AWS Lambda to the S3 path. 
+
+But there are limits for zipped and unzipped package deployment: 50 MB for zipped and 250 MB for unzipped. If the package exceeds this limits, users have to build code in a [container image](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html), upload the image to [AWS ECR](https://aws.amazon.com/ecr/) and direct AWS Lambda to use the image. The size limit of a container image is 10 GB.
+
+### Amazon Redshift
+[Amazon Redshift](https://aws.amazon.com/redshift/) is cloud data warehouse which uses SQL to analyze structured and unstructured data from operational databases, data lakes, etc. Amazon Redshift is based on [PostgreSQL](https://docs.aws.amazon.com/redshift/latest/dg/c_redshift-and-postgres-sql.html) and they share similar syntax and data types definition. However, they are different in several ways. 
+
+Amazon Redshift stores data in columns. Tables are organized in columns instead of rows, which provides better I/O characteristics for analytical workloads.
+
+Amazon Redshift does not [enforce constraints](https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-defining-constraints.html). Primary and foreign keys can be defined but they are not enforces. They are informational and query optimizer uses them to generate more efficient execution plans.
+
+Amazon Redshift does not support indexes. Users need to understand data structure and usage requirements to define [sort keys](https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-sort-key.html), [distribution keys and styles](https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-best-dist-key.html) for query performance improvement.
+
+Amazon Redshift is distributed and comprised of several compute nodes which are orchestrated by one leader node. Users can vertically scale up Redshift by adding more processing power and memory to compute nodes or horizontally scale out by adding more compute nodes. 
+
+### Amazon S3
+[Amazon S3](https://aws.amazon.com/s3/) is an object storage service. It is scalable and cost-effective. It is integrated with Amazon Redshift that allows easy data import. In this project, Amazon S3 is used as the data lake which stored raw data extracted from various sources and processed data for Redshift import.
+
 
 ## Data Sets
 Railway is important public transport system in Britain. Delays or cancellations cause inconvenience to a lot of railway users, especially the commuters. The disruptions can be caused by a lot of factors, such as over running engineering work, industrial actions, public holidays, weather, etc. Weather can bring impacts to railway in different ways. Severe weather conditions may damage railway signalling system or cause landslides and fallen trees on the tracks. Even a wrong kind of sunlight can cause delays as reported in this [news story](https://www.theguardian.com/uk-news/2016/jan/12/wrong-kind-of-sunlight-delays-southeastern-trains-london) from Guardian!
