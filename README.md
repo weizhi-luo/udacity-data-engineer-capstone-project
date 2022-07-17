@@ -370,7 +370,7 @@ skin_temperature | double precision | | temperature of Earth surface | 286.87130
 
 fct.ecmwf_actual is linked to dms.ecmwf_actual_coordinate and dms.date_time as:
 
-<img scr="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.ecmwf_actual_links.png"/>
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.ecmwf_actual_links.png"/>
 
 #### fct.ecmwf_forecast
 fct.ecmwf_forecast table contains ECMWF forecast data and it has the following columns:
