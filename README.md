@@ -165,9 +165,9 @@ The following variables are downloaded:
 * v10: northward component of wind at the height of 10 meters above Earth surface
 * msl: air pressure adjusted to the height of mean sea level
 * sp: air pressure at the surface of land
-* tcwv: Total amount of water vapour from Earth surface to the top of the atmosphere
-* tp: Accumulated liquid and frozen water from rain and snow which falls to the Earth surface
-* skt: Temperature of Earth surface
+* tcwv: total amount of water vapour from Earth surface to the top of the atmosphere
+* tp: accumulated liquid and frozen water from rain and snow which falls to the Earth surface
+* skt: temperature of Earth surface
 
 As we are checking rail service performance data around London region, ERA5 data is downloaded within the region of north latitude 52.5&deg;, south latitude 50.5&deg;, east longitude 1&deg; and west longitude -1&deg;.
 
@@ -252,7 +252,7 @@ Column Name | Data Type | Column Size for Display | Description                 
 --- |---------| --- |----------------------------------------------------------------------------------------|--- 
 id | integer | | Unique identity of each station                                                        | 1
 name | varchar | 50 | Name of the station                                                                    | London Bridge
-code | varchar | 10 | Code of the station. This value is displayed <br/>in the railway historic performance data. | LBG
+code | varchar | 10 | Code of the station. This value is displayed in the railway historic performance data. | LBG
 
 The column ```id``` is defined as the primary key ```station_pkey ``` for this table. Its distribution style is 'ALL' so that it will be available in all compute node in Redshift to improve the performance of joins.
 
@@ -265,7 +265,7 @@ Column Name | Data Type | Column Size for Display | Description                 
 --- |---------| --- |------------------------------------------------------------------------------------------------------|--- 
 id | integer | | Unique identity of each train service operator                                                       | 1
 name | varchar | 50 | Name of the train service operator                                                                   | 	First MTR South Western Trains
-code | varchar | 10 | Code of the train service opeator. This value is displayed <br/>in the railway historic performance data. | SW
+code | varchar | 10 | Code of the train service opeator. This value is displayed in the railway historic performance data. | SW
 
 The column ```id``` is defined as the primary key ```train_service_operator_pkey``` for this table. Its distribution style is 'ALL' so that it will be available in all compute node in Redshift to improve the performance of joins.
 
@@ -335,49 +335,42 @@ Three fact tables are created to store fact data:
 #### fct.rail_service_performance
 fct.rail_service_performance table contains rail service performance data. It has the following columns:
 
-Column Name | Data Type | Column Size for Display | Description                                                                         | Example 
---- | --- | --- |-------------------------------------------------------------------------------------| ---
-origin_location_id | integer | | Unique identity of origin station. Foreign key to dimension table dms.station.      | 1908
-destination_location_id | integer | | Unique identity of destination station. Foreign key to dimension table dms.station. | 1447
-"date" | date | | Value of the date of the service. foreign key to dimension table dms."date".        | 2022-06-20
-arrival_time | time | | Arrival time of the service                                                         | 06:50
-departure_time | time | | Departure time of the service                                                       | 06:11
-train_service_operator_id | integer | | Unique identity of each train service operator. Foreign key to dimension table dms.train_service_operator | 1
-rid | varchar | 30 | Identifier of the service | 202207078781536
-delayed | boolean | | Indicate whether the service is delayed | true
-delay_tolerance_minute | smallint | | Delay tolerance in minutes. For example, 5 means the delay is tolerated up to 5 minutes.<br/>Any delay under 5 minutes will have value of ```false``` in column ```delayed```. | 5
+Column Name | Data Type | Column Size for Display | Description                                                                                                                                                                | Example 
+--- | --- | --- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---
+origin_location_id | integer | | Unique identity of origin station. Foreign key to dimension table dms.station.                                                                                             | 1908
+destination_location_id | integer | | Unique identity of destination station. Foreign key to dimension table dms.station.                                                                                        | 1447
+"date" | date | | Value of the date of the service. foreign key to dimension table dms."date".                                                                                               | 2022-06-20
+arrival_time | time | | Arrival time of the service                                                                                                                                                | 06:50
+departure_time | time | | Departure time of the service                                                                                                                                              | 06:11
+train_service_operator_id | integer | | Unique identity of each train service operator. Foreign key to dimension table dms.train_service_operator                                                                  | 1
+rid | varchar | 30 | Identifier of the service                                                                                                                                                  | 202207078781536
+delayed | boolean | | Indicate whether the service is delayed                                                                                                                                    | true
+delay_tolerance_minute | smallint | | Delay tolerance in minutes. For example, 5 means the delay is tolerated up to 5 minutes. Any delay under 5 minutes will have value of ```false``` in column ```delayed```. | 5
 
 fct.rail_service_performance is linked to dms.station, dms."date" and dms.train_service_operator as:
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.rail_links.png"/>
 
-```mermaid
-erDiagram
-station ||--o{ rail_service_performance : origin_location_id
-station ||--o{ rail_service_performance : destination_location_id
-date ||--o{ rail_service_performance : date
-train_service_operator ||--o{ rail_service_performance : train_service_operator_id
-```
-
 #### fct.ecmwf_actual
-fct.ecmwf_actual table contains ECMWF actual data and it has the following columns:
-* latitude: foreign key to dimension table dms.ecmwf_actual_coordinate 
-* longitude: foreign key to dimension table dms.ecmwf_actual_coordinate 
-* value_date_time: foreign key to dimension table dms.date_time 
-* temperature
-* u_wind_component
-* v_wind_component
-* mean_sea_level_pressure
-* surface_pressure
-* total_column_vertically_integrated_water_vapour 
-* total_precipitation
-* skin_temperature
-```mermaid
-erDiagram
-ecmwf_actual_coordinate ||--o{ ecmwf_actual : latitude
-ecmwf_actual_coordinate ||--o{ ecmwf_actual : longitude
-date_time ||--o{ ecmwf_actual : value_date_time
-```
+fct.ecmwf_actual table contains ECMWF actual data. It has the following columns:
+
+Column Name | Data Type        | Column Size for Display | Description                                                                              | Example
+---|------------------|---|------------------------------------------------------------------------------------------| ---
+latitude | decimal          | precision of 5 and scale of 2 | Latitude of the coordinate. Foregin key to dimension table dms.ecmwf_actual_coordinate.  | 52.25
+longitude | decimal          | precision of 5 and scale of 2 | Longitude of the coordinate. Foregin key to dimension table dms.ecmwf_actual_coordinate. | -1.0
+value_date_time | timestamp        | | Value date and time. Foreign key to dimension table dms.date_time.                       | 2022-06-10 00:00
+temperature | double precision | | Temperature                                                                              | 288.0147399902344
+u_wind_component | double precision | | Eastward component of wind at the height of 10 meters above Earth surface                | 3.1395483016967773
+v_wind_component | double precision | | Northward component of wind at the height of 10 meters above Earth surface               | 4.164521217346191
+mean_sea_level_pressure | double precision | | Air pressure adjusted to the height of mean sea level                                    | 101545.5
+surface_pressure | double precision | | Air pressure at the surface of land                                                      | 100141.15625
+total_column_vertically_integrated_water_vapour | double precision | | Total amount of water vapour from Earth surface to the top of the atmosphere |  14.827731132507324
+total_precipitation | double precision | | accumulated liquid and frozen water from rain and snow which falls to the Earth surface | 0
+skin_temperature | double precision | | temperature of Earth surface | 286.8713073730469
+
+fct.ecmwf_actual is linked to dms.ecmwf_actual_coordinate and dms.date_time as:
+
+<img scr="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.ecmwf_actual_links.png"/>
 
 #### fct.ecmwf_forecast
 fct.ecmwf_forecast table contains ECMWF forecast data and it has the following columns:
