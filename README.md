@@ -341,7 +341,7 @@ Five DAGs are created to extract and transform rail service performance data. Ea
 
 Take DAG daily_rail_london_blackfriars_inbound_services_performance_download as an example:
 
-<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/blackfriars_dag.png"/>]
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/blackfriars_dag.png"/>
 
 There are five tasks in this DAG. 
 
