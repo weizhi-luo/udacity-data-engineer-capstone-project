@@ -28,7 +28,7 @@ Airflow's user interface makes it easy to manage DAG runs. It helps users check 
 
 Airflow's scheduler allows users to set up different schedules that trigger DAGs to run. Users define a DAG by a Python script, which represents a collection of tasks. Each task is defined by instantiating an [operator](https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html), where users can use Jinja Templating to access [macros](https://airflow.apache.org/docs/apache-airflow/stable/templates-ref.html#templates-ref) and [variables](https://airflow.apache.org/docs/apache-airflow/stable/howto/variable.html) without hard coding the tasks. 
 
-Airflow also provides [connections and hooks](https://airflow.apache.org/docs/apache-airflow/stable/concepts/connections.html) that make it simpler to define tasks in pulling and pushing data from and to various sources (http, ftp, sftp, AWS S3, etc.). Except the inbuilt and third party contribute operators, Airflow also allow users to define custom operators for specific needs.
+Airflow also provides [connections and hooks](https://airflow.apache.org/docs/apache-airflow/stable/concepts/connections.html) that make it simpler to define tasks in pulling and pushing data from and to various sources (http, ftp, sftp, Amazon S3, etc.). Except the inbuilt and third party contribute operators, Airflow also allow users to define custom operators for specific needs.
 
 Airflow is a convenient and powerful tool for implementing a data engineering pipeline. Although technically users can place all data extraction and processing logics in it, it is a better practice to use it as an [orchestrator](https://www.astronomer.io/guides/dag-best-practices/) that invoke heavy processing jobs on other platforms or instances. Therefore, AWS solutions are also used in this project.
 
@@ -236,12 +236,93 @@ Eighteen staging tables are created to allow transformed raw data to be imported
 
 ### Dimension Tables
 Six dimension tables are created to store data describing attributes of fact data:
-* dms.station: dimension table for railway station name and code. The data is obtained from [National Rail](https://www.nationalrail.co.uk/stations_destinations/48541.aspx).
-* dms.train_service_operator: dimension table for train service operator name and code. The data is extracted from the operator_code column of stg.rail_service_performance and combined with data from railway codes [website](http://www.railwaycodes.org.uk/operators/toccodes.shtm).
-* dms."date": dimension table for date data extracted from date column from staging table stg.rail_service_performance
-* dms.date_time: dimension table for date and time extracted from value_date_time column from staging tables of ECMWF actual and forecast data
-* dms.ecmwf_actual_coordinate: dimension table for coordinate data extracted from staging table of ECMWF actual data
-* dms.ecmwf_forecast_coordinate: dimension table for coordinate data extracted from staging tables of ECMWF forecast data
+* dms.station
+* dms.train_service_operator
+* dms."date"
+* dms.date_time
+* dms.ecmwf_actual_coordinate
+* dms.ecmwf_forecast_coordinate
+
+#### dms.station
+dms.station is a dimension table for railway station name and code. The data is obtained from [National Rail](https://www.nationalrail.co.uk/stations_destinations/48541.aspx).
+
+The table has the following columns:
+
+Column Name | Data Type | Column Size for Display | Description                                                                            | Example 
+--- |---------| --- |----------------------------------------------------------------------------------------|--- 
+id | integer | | Unique identity of each station                                                        | 1
+name | varchar | 50 | Name of the station                                                                    | London Bridge
+code | varchar | 10 | Code of the station. This value is displayed <br/>in the railway historic performance data. | LBG
+
+The column ```id``` is defined as the primary key ```station_pkey ``` for this table. Its distribution style is 'ALL' so that it will be available in all compute node in Redshift to improve the performance of joins.
+
+#### dms.train_service_operator
+dms.train_service_operator is a dimension table for train service operator name and code. The data is extracted from the operator_code column of stg.rail_service_performance and combined with data from railway codes [website](http://www.railwaycodes.org.uk/operators/toccodes.shtm).
+
+The table has the following columns:
+
+Column Name | Data Type | Column Size for Display | Description                                                                                          | Example 
+--- |---------| --- |------------------------------------------------------------------------------------------------------|--- 
+id | integer | | Unique identity of each train service operator                                                       | 1
+name | varchar | 50 | Name of the train service operator                                                                   | 	First MTR South Western Trains
+code | varchar | 10 | Code of the train service opeator. This value is displayed <br/>in the railway historic performance data. | SW
+
+The column ```id``` is defined as the primary key ```train_service_operator_pkey``` for this table. Its distribution style is 'ALL' so that it will be available in all compute node in Redshift to improve the performance of joins.
+
+#### dms."date"
+dms."date" is a dimension table for date data extracted from date column from staging table stg.rail_service_performance.
+
+The table has the following columns:
+
+Column Name | Data Type | Description | Example 
+--- |---|---| ---
+"date" | date | Value of the date | 2022-06-01
+"year" | integer | Year of the date | 2022
+"month" | integer | Month of the date | 6
+"day" | integer | Day of the date | 1
+week | integer | Week number of the date | 22
+day_of_week | integer |  Day of week of the date | 3
+
+The column ```"date"``` is defined as the primary key ```date_pkey``` for this table. Its distribution style is 'ALL' so that it will be available in all compute node in Redshift to improve the performance of joins.
+
+#### dms.date_time
+dms.date_time is a dimension table for date and time extracted from value_date_time column from staging tables of ECMWF actual and forecast data.
+
+The table has the following columns:
+
+Column Name | Data Type | Description | Example 
+--- | --- |---| ---
+date_time | timestamp | Value of the date and time | 2022-06-01 00:00:00
+"year" | integer | Year of the date and time | 2022
+"month" | integer | Month of the date and time | 6
+"day" | integer | Day of the date and time | 1
+"hour" | integer | Hour of the date and time | 0
+week | integer | Week number of the date | 22
+day_of_week | integer | Day of week of the date | 3
+
+The column ```date_time``` is defined as the primary key ```date_time_pkey``` for this table. Its distribution style is 'ALL' so that it will be available in all compute node in Redshift to improve the performance of joins.
+
+#### dms.ecmwf_actual_coordinate
+dms.ecmwf_actual_coordinate is a dimension table for coordinate data extracted from staging table of ECMWF actual data.
+
+The table has the following columns:
+
+Column Name | Data Type | Column Size for Display | Description | Example 
+--- |-----------|---|----------------------------|--- 
+latitude | decimal | precision of 5 and scale of 2 | Latitude of the coordinate | 52.25
+longitude | decimal | precision of 5 and scale of 2 | Longitude of the coordinate | -1.0
+
+A composite primary key ```ecmwf_actual_coordinate_pkey``` is defined with columns ```latitude``` and ```longitude```.
+
+#### dms.ecmwf_forecast_coordinate
+dms.ecmwf_forecast_coordinate is a dimension table for coordinate data extracted from staging tables of ECMWF forecast data.
+
+Column Name | Data Type | Column Size for Display | Description | Example 
+--- |-----------|---|----------------------------|--- 
+latitude | decimal | precision of 5 and scale of 2 | Latitude of the coordinate | 52.4
+longitude | decimal | precision of 5 and scale of 2 | Longitude of the coordinate | -1.2
+
+A composite primary key ```ecmwf_forecast_coordinate_pkey``` is defined with columns ```latitude``` and ```longitude```.
 
 The reason why there are two dimension tables for coordinates of ECMWF actual and forecast respectively is due to the difference in granularity. ECMWF actual data's coordinates form a latitude-longitude grid of 0.25 degrees, while ECMWF forecast data's grid is of 0.4 degrees. By having two dimension tables, mapping tables can be created later to fill the gap between the difference in granularity.
 
@@ -253,15 +334,22 @@ Three fact tables are created to store fact data:
 
 #### fct.rail_service_performance
 fct.rail_service_performance table contains rail service performance data. It has the following columns:
-* origin_location_id: foreign key to dimension table dms.station
-* destination_location_id: foreign key to dimension table dms.station
-* "date": foreign key to dimension table dms."date"
-* arrival_time
-* departure_time
-* train_service_operator_id: foreign key pointing to dimension table dms.train_service_operator
-* rid 
-* delayed 
-* delay_tolerance_minute
+
+Column Name | Data Type | Column Size for Display | Description                                                                         | Example 
+--- | --- | --- |-------------------------------------------------------------------------------------| ---
+origin_location_id | integer | | Unique identity of origin station. Foreign key to dimension table dms.station.      | 1908
+destination_location_id | integer | | Unique identity of destination station. Foreign key to dimension table dms.station. | 1447
+"date" | date | | Value of the date of the service. foreign key to dimension table dms."date".        | 2022-06-20
+arrival_time | time | | Arrival time of the service                                                         | 06:50
+departure_time | time | | Departure time of the service                                                       | 06:11
+train_service_operator_id | integer | | Unique identity of each train service operator. Foreign key to dimension table dms.train_service_operator | 1
+rid | varchar | 30 | Identifier of the service | 202207078781536
+delayed | boolean | | Indicate whether the service is delayed | true
+delay_tolerance_minute | smallint | | Delay tolerance in minutes. For example, 5 means the delay is tolerated up to 5 minutes.<br/>Any delay under 5 minutes will have value of ```false``` in column ```delayed```. | 5
+
+fct.rail_service_performance is linked to dms.station, dms."date" and dms.train_service_operator as:
+
+
 ```mermaid
 erDiagram
 station ||--o{ rail_service_performance : origin_location_id
