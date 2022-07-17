@@ -345,7 +345,7 @@ Take DAG daily_rail_london_blackfriars_inbound_services_performance_download as 
 
 There are five tasks in this DAG. 
 
-The first task download_Brighton_to_London_Blackfriars downloads data from National Rail's Darwin API. The download is done by using the http connection national_rail_historical_service_performance set up in airflow. 
+The first task download_Brighton_to_London_Blackfriars downloads data from National Rail's Darwin API. The download is done by using the http connection national_rail_historical_service_performance set up in Airflow. 
 
 The second task data_quality_check_Brighton_to_London_Blackfriars receives the downloaded data via xcom and validates its format. 
 
@@ -370,24 +370,28 @@ As explained before, in order to avoid problems when downloading all eight varia
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_00_forecast_skt_dag.png">
 
-There are four tasks in downloading this data. 
+There are six tasks in downloading this data. 
 
-The first task download_ecmwf_forecast_skt invokes an AWS lambda function download_ecmwf_forecast to download data in grib2 format and upload to S3 bucket. The lambda function returns information related to the downloaded file such as S3 bucket and key and pushes it to xcom.
+The first task download_ecmwf_forecast_skt invokes an AWS Lambda function download_ecmwf_forecast to download data in grib2 format and upload to S3 bucket. The Lambda function returns information related to the downloaded file such as S3 bucket and key and pushes it to xcom.
 
-The second task download_ecmwf_forecast_skt pulls the information from xcom and prepares them as the payload to be used by the third task. The prepared payload is pushed to xcom.
+The second task create_conversion_payload_ecmwf_forecast_skt pulls the information from xcom and prepares them as the payload to be used by the third task. The prepared payload is pushed to xcom.
 
-The third task convert_ecmwf_forecast_to_json_skt pulls data from xcom and use it as the payload for invoking AWS lambda function convert_ecmwf_forecast_to_json. This lambda function downloads the grib2 file and converts it to the json format that can be imported to Redshift data warehouse.
+The third task convert_ecmwf_forecast_to_json_skt pulls data from xcom and uses it as the payload for invoking AWS Lambda function convert_ecmwf_forecast_to_json. This Lambda function downloads the grib2 file and converts it to the json format that can be imported to Redshift data warehouse. After the conversion is done, it returns the S3 bucket and S3 key for the new file's location. The S3 bucket and S3 key are pushed to xcom.
+
+The fourth task create_json_file_validation_payload_skt pulls S3 bucket and S3 key from xcom. From variables set in Airflow, it also gets the expected keys to be available in the converted file. With both part of information, it creates the payload to be used by the next task. The prepared payload is pushed to xcom.
+
+The fifth task validate_json_file_skt pulls data from xcom and uses it as the payload for invoking AWS Lambda function redshift_json_file_format_check. The Lambda function downloads the json file and check if its format and content.
 
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
-AWS lambda functions are used here to offload heavy data processing from airflow, as well as avoid installing too many packages and libraries to the server where airflow is installed.
+AWS Lambda functions are used here to offload heavy data processing from Airflow, as well as avoid installing too many packages and libraries to the server where Airflow is installed.
 
 #### ECMWF Actual DAG
 One DAG is created to download ECMWF actual data: daily_ecmwf_actual_download. As ECMWF ERA5 data is normally delayed for around 5 days. In order to make sure data is available, the dag downloads data of seven days ago.
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/ecmwf_actual_dag.png">
 
-There are five tasks in this DAG.
+There are seven tasks in this DAG.
 
 The first task prepare_download_path prepares the local path for storing ECMWF actual data file.
 
@@ -395,11 +399,15 @@ The second task download_file downloads ECMWF actual data in file of netCDF form
 
 The third task upload_file uploads ECMWF actual data file to S3 bucket and push the related information to xcom. 
 
-The fourth task convert_to_json pulls data from xcom, creates payload and invokes the AWS lambda function convert_ecmwf_actual_json for converting netCDF data to a format of json that can be imported to Redshift.
+The fourth task convert_to_json pulls data from xcom, creates payload and invokes the AWS Lambda function convert_ecmwf_actual_json for converting netCDF data to a format of json that can be imported to Redshift. The S3 bucket and S3 key are returned and push to xcom.
+
+The fifth task create_json_file_validation_payload pulls S3 bucket and S3 key from xcom. From variables set in Airflow, it also gets the expected keys to be available in the converted file. With both part of information, it creates the payload to be used by the next task. The prepared payload is pushed to xcom.
+
+The sixth task validate_json_file pulls data from xcom and uses it as the payload for invoking AWS Lambda function redshift_json_file_format_check. The Lambda function downloads the json file and check if its format and content.
 
 Finally, a watcher task is used and only activate if any of the previous task fails.
 
-Similar to ECMWF forecast DAGs, an AWS lambda function is used here to offload heavy data processing of netCDF/json conversion from airflow. However, data download is still carried out by airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
+Similar to ECMWF forecast DAGs, an AWS Lambda function is used here to offload heavy data processing of netCDF/json conversion from Airflow. However, data download is still carried out by Airflow. The reason is that data API key has to be saved in .cdsapirc file under $HOME folder. I haven't found a way to do that using AWS Lambda. It might be achievable using a customised docker image. It is worth further investigation and tests.
 
 ### One Time DAG
 The one time DAG one_time_data_import runs once with schedule ```@once```. It can be divided into three steps:
@@ -429,7 +437,7 @@ Tasks load_fact_ecmwf_actual, load_fact_ecmwf_forecast and load_fact_rail_servic
 If the data was increased by 100 times, the current ETL pipeline may not be able to handle that. We may use large scale data processing engine such as Apache Spark instead.
 
 ### If the pipelines were run on a daily basis by 7am
-We need to make sure the schedules in Airflow are set to by 7am, such as cron ```0 6 * * *```. The airflow's scheduler runs job at the end of schedule_interval. 
+We need to make sure the schedules in Airflow are set to by 7am, such as cron ```0 6 * * *```. The Airflow's scheduler runs job at the end of schedule_interval. 
 
 For example, assuming that the start date is 2022-06-01 06:00 and schedule is ```0 6 * * *```. The run with start date 2022-06-01 06:00 will only be triggered soon after 2022-06-02 05:59.
 
