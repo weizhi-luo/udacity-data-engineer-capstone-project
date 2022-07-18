@@ -358,7 +358,7 @@ Column Name | Data Type        | Column Size for Display | Description          
 ---|------------------|---|------------------------------------------------------------------------------------------| ---
 latitude | decimal          | precision of 5 and scale of 2 | Latitude of the coordinate. Foregin key to dimension table dms.ecmwf_actual_coordinate.  | 52.25
 longitude | decimal          | precision of 5 and scale of 2 | Longitude of the coordinate. Foregin key to dimension table dms.ecmwf_actual_coordinate. | -1.0
-value_date_time | timestamp        | | Value date and time. Foreign key to dimension table dms.date_time.                       | 2022-06-10 00:00
+value_date_time | timestamp        | | Value date and time. Foreign key to dimension table dms.date_time.                       | 2022-06-10 00:00:00
 temperature | double precision | | Temperature                                                                              | 288.0147399902344
 u_wind_component | double precision | | Eastward component of wind at the height of 10 meters above Earth surface                | 3.1395483016967773
 v_wind_component | double precision | | Northward component of wind at the height of 10 meters above Earth surface               | 4.164521217346191
@@ -373,27 +373,30 @@ fct.ecmwf_actual is linked to dms.ecmwf_actual_coordinate and dms.date_time as:
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.ecmwf_actual_links.png"/>
 
 #### fct.ecmwf_forecast
-fct.ecmwf_forecast table contains ECMWF forecast data and it has the following columns:
-* latitude: foreign key to dimension table dms.ecmwf_forecast_coordinate 
-* longitude: foreign key to dimension table dms.ecmwf_forecast_coordinate 
-* forecast_date_time
-* value_date_time: foreign key to dimension table dms.date_time 
-* temperature
-* u_wind_component
-* v_wind_component
-* mean_sea_level_pressure
-* surface_pressure
-* total_column_vertically_integrated_water_vapour 
-* total_precipitation
-* skin_temperature
-```mermaid
-erDiagram
-ecmwf_forecast_coordinate ||--o{ ecmwf_forecast : latitude
-ecmwf_forecast_coordinate ||--o{ ecmwf_forecast : longitude
-date_time ||--o{ ecmwf_forecast : value_date_time
-```
+fct.ecmwf_forecast table contains ECMWF forecast data. It has the following columns:
 
-## Data Warehouse
+Column Name | Data Type        | Column Size for Display | Description                                                                                | Example
+---|------------------|---|--------------------------------------------------------------------------------------------| ---
+latitude | decimal          | precision of 5 and scale of 2 | Latitude of the coordinate. Foregin key to dimension table dms.ecmwf_forecast_coordinate.  | 52.4
+longitude | decimal          | precision of 5 and scale of 2 | Longitude of the coordinate. Foregin key to dimension table dms.ecmwf_forecast_coordinate. | -1.2
+forecast_date_time | timestamp | | Date and time when the forecast is published. | 2022-06-09 12:00:00:00 
+value_date_time | timestamp        | | Value date and time. Foreign key to dimension table dms.date_time.                         | 2022-06-10 00:00:00
+temperature | double precision | | Temperature                                                                                | 288.0147399902344
+u_wind_component | double precision | | Eastward component of wind at the height of 10 meters above Earth surface                  | 3.1395483016967773
+v_wind_component | double precision | | Northward component of wind at the height of 10 meters above Earth surface                 | 4.164521217346191
+mean_sea_level_pressure | double precision | | Air pressure adjusted to the height of mean sea level                                      | 101545.5
+surface_pressure | double precision | | Air pressure at the surface of land                                                        | 100141.15625
+total_column_vertically_integrated_water_vapour | double precision | | Total amount of water vapour from Earth surface to the top of the atmosphere               |  14.827731132507324
+total_precipitation | double precision | | accumulated liquid and frozen water from rain and snow which falls to the Earth surface    | 0
+skin_temperature | double precision | | temperature of Earth surface                                                               | 286.8713073730469
+
+Column ```forecast_date_time``` is defined as the distribution key so that the table is partitioned based on it.
+
+fct.ecmwf_forecast is linked to dms.ecmwf_forecast_coordinate and dms.date_time as:
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.ecmwf_forecast_links.png"/>
+
+### Data Warehouse
 [Amazon Redshift](https://aws.amazon.com/redshift/) is used in this project for data warehouse. 
 
 After creating an instance of Redshift, SQL scripts presented in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/aws_redshift) should be executed following numerical order to create schemas and dimension and fact tables. 
