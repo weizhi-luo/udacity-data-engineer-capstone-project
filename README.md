@@ -353,6 +353,39 @@ fct.rail_service_performance is linked to dms.station, dms."date" and dms.train_
 
 <img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.rail_links.png"/>
 
+Here is an example for querying the related tables. Assuming that a user wants to find out the delay percentages of the destination stations of week 24 of 2022, the following query can be used:
+```postgresql
+SELECT all_services.name, 
+CASE WHEN delayed_services.name IS NULL THEN 0
+ELSE (CAST(delayed_services.service_count AS DECIMAL(5, 2)) / CAST(all_services.service_count AS DECIMAL(5, 2))) * 100
+END AS delay_percentage
+FROM (
+  SELECT ds.name, COUNT(1) AS service_count
+  FROM fct.rail_service_performance p
+  INNER JOIN dms.date d
+  ON p."date" = d."date"
+  INNER JOIN dms.station ds
+  ON ds.id = p.destination_location_id
+  WHERE d."week" = 24
+  GROUP BY ds.name
+) AS all_services
+LEFT JOIN (
+  SELECT ds.name, COUNT(1) AS service_count
+  FROM fct.rail_service_performance p
+  INNER JOIN dms.date d
+  ON p."date" = d."date"
+  INNER JOIN dms.station ds
+  ON ds.id = p.destination_location_id
+  WHERE d."week" = 24 AND p.delayed = true
+  GROUP BY ds.name
+) AS delayed_services
+ON delayed_services.name = all_services.name
+ORDER BY delay_percentage 
+```
+The result of the query is:
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/query_result.PNG">
+
 #### fct.ecmwf_actual
 fct.ecmwf_actual table contains ECMWF actual data. It has the following columns:
 
@@ -517,6 +550,20 @@ Task copy_dimension_station_codes executes ```copy``` command to load railway st
 #### Fact
 Tasks load_fact_ecmwf_actual, load_fact_ecmwf_forecast and load_fact_rail_service_performance run the SQL scripts defined in LoadFactTables class in [sql_queries.py](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/airflow/plugins/helpers/sql_queries.py) file in Redshift instance to load fact tables.
 
+#### Import Results
+After running the import DAG, staging, dimension and fact tables are filled with data. Some results are presented as follows.
+
+Query result of table fct.ecmwf_actual:
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.ecmwf_actual_result.PNG">
+
+Query result of table fct.ecmwf_forecast:
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.ecmwf_forecast_result.PNG">
+
+Query result of table fct.rail_service_performance:
+
+<img src="https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/doc/images/fct.rail_service_performance_result.PNG">
 
 ## Discussion
 
