@@ -201,7 +201,9 @@ The data is downloaded in [grib2](https://rda.ucar.edu/datasets/ds083.2/software
 ```
 
 ## Data Model
-The data warehouse is using a dimension data model based on [star schema](https://en.wikipedia.org/wiki/Star_schema). Comparing to normalized data models, dimension data model simplifies joins between tables and also facilitate aggregation. There are three fact tables storing ECMWF actual data, ECMWF forecast data and rail service performances. Dimension tables contains data for railway stations, train service operator, ECMWF actual data coordinates, ECMWF forecast data coordinates, date time and date. The SQL scripts for creating database schema and table are available in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/aws_redshift):
+The data warehouse is using a dimension data model based on [star schema](https://en.wikipedia.org/wiki/Star_schema). Comparing to normalized data models, dimension data model simplifies joins between tables and also facilitate aggregation. There are three fact tables storing ECMWF actual data, ECMWF forecast data and rail service performances. Dimension tables contains data for railway stations, train service operator, ECMWF actual data coordinates, ECMWF forecast data coordinates, date time and date. 
+
+The data dictionary is available at [file](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/blob/main/aws_redshift/DATA_DICTIONARY.md). The SQL scripts for creating database schema and table are available in [repository](https://github.com/weizhi-luo/udacity-data-engineer-capstone-project/tree/main/aws_redshift):
 * 001_create schemas.sql 
 * 002_create_staging_tables.sql 
 * 003_create_dimension_tables.sql 
